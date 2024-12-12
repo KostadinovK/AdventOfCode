@@ -24,44 +24,14 @@ void DisplaySafeRepostsCountWithProblemDampener(List<List<int>> reports)
 
     foreach (var report in reports)
     {
-        var reportIsSafe = true;
-        var levelRemovedCount = 0;
-        var prevLevelsDiff = Int32.MaxValue;
-        for (int i = 0; i < report.Count - 1; i++)
-        {
-            var currLevel = report[i];
-            var nextLevel = report[i + 1];
+        var reportVariationsWithOneRemoval = report
+            .Select((_, index) => report
+                .Where((_, index2) => index != index2).ToList())
+            .ToList();
 
-            var diff = currLevel - nextLevel;
+        var hasSafeReportVariation = reportVariationsWithOneRemoval.Any(IsReportSafe);
 
-            if (diff == 0 || diff < -3 || diff > 3)
-            {
-                levelRemovedCount++;
-                if (levelRemovedCount > 1)
-                {
-                    reportIsSafe = false;
-                    break;
-                }
-                report[i + 1] = currLevel;
-                continue;
-            }
-
-            if (prevLevelsDiff != Int32.MaxValue && Math.Sign(prevLevelsDiff) != Math.Sign(diff))
-            {
-                levelRemovedCount++;
-                if (levelRemovedCount > 1)
-                {
-                    reportIsSafe = false;
-                    break;
-                }
-                report[i + 1] = currLevel;
-                continue;
-            }
-
-            prevLevelsDiff = diff;
-        }
-
-        if (reportIsSafe)
+        if (hasSafeReportVariation)
         {
             safeReports++;
         }
@@ -77,29 +47,7 @@ void DisplaySafeRepostsCount(List<List<int>> reports)
 
     foreach (var report in reports)
     {
-        var reportIsSafe = true;
-        var prevLevelsDiff = Int32.MaxValue;
-        for (int i = 0; i < report.Count - 1; i++)
-        {
-            var currLevel = report[i];
-            var nextLevel = report[i + 1];
-
-            var diff = currLevel - nextLevel;
-
-            if (diff == 0 || diff < -3 || diff > 3)
-            {
-                reportIsSafe = false;
-                break;
-            }
-
-            if (prevLevelsDiff != Int32.MaxValue && Math.Sign(prevLevelsDiff) != Math.Sign(diff))
-            {
-                reportIsSafe = false;
-                break;
-            }
-
-            prevLevelsDiff = diff;
-        }
+        var reportIsSafe = IsReportSafe(report);
 
         if (reportIsSafe)
         {
@@ -108,4 +56,33 @@ void DisplaySafeRepostsCount(List<List<int>> reports)
     }
 
     Console.WriteLine($"Safe reports count: {safeReports}");
+}
+
+bool IsReportSafe(List<int> report)
+{
+    var isSafe = true;
+    var prevLevelsDiff = Int32.MaxValue;
+    for (int i = 0; i < report.Count - 1; i++)
+    {
+        var currLevel = report[i];
+        var nextLevel = report[i + 1];
+
+        var diff = currLevel - nextLevel;
+
+        if (diff == 0 || diff < -3 || diff > 3)
+        {
+            isSafe = false;
+            break;
+        }
+
+        if (prevLevelsDiff != Int32.MaxValue && Math.Sign(prevLevelsDiff) != Math.Sign(diff))
+        {
+            isSafe = false;
+            break;
+        }
+
+        prevLevelsDiff = diff;
+    }
+
+    return isSafe;
 }
